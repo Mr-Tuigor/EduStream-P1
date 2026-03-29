@@ -1,0 +1,105 @@
+/* style.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* The White Cards */
+.card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1rem; /* Rounded-2xl equivalent */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9; /* Slate-100 */
+}
+
+/* Container to ensure charts don't grow infinitely */
+.chart-wrapper {
+    position: relative;
+    height: 350px;
+    width: 100%;
+}
+
+/* --- Layout Utilities --- */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* --- Card Components --- */
+.card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* --- Badges --- */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.badge-success {
+    background-color: #dcfce7; /* Green 100 */
+    color: #15803d; /* Green 700 */
+    border: 1px solid #bbf7d0;
+}
+.badge-info {
+    background-color: #dbeafe; /* Blue 100 */
+    color: #1d4ed8; /* Blue 700 */
+    border: 1px solid #bfdbfe;
+}
+.badge-warning {
+    background-color: #fef9c3; /* Yellow 100 */
+    color: #a16207; /* Yellow 700 */
+    border: 1px solid #fde047;
+}
+
+/* --- Flow Chart Nodes --- */
+.flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.icon-box {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.flow-node:hover .icon-box {
+    transform: scale(1.1);
+}
+
+/* --- Header Pattern --- */
+.bg-grid-pattern {
+    background-image: linear-gradient(#ffffff 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff 1px, transparent 1px);
+    background-size: 40px 40px;
+}
