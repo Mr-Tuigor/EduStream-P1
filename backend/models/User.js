@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     // We store these so the user doesn't have to select them every time
-    university: { type: String, default: "" }, 
-    branch: { type: String, default: "" },
+    university: { type: String, default: "Nagpur" }, 
+    branch: { type: String, default: "ETC" },
     semester: { type: String, default: "" }, 
     role: { type: String, default: "student" } // To identify you as the curator
 }, { timestamps: true });
