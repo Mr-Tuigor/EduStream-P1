@@ -1,7 +1,4 @@
 const Video = require('../models/Video');
-<<<<<<< Updated upstream
-const mongoose = require('mongoose');
-=======
 const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -9,7 +6,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 
->>>>>>> Stashed changes
 
 // @desc    Get videos based on filters
 // @route   GET /api/videos
@@ -158,8 +154,6 @@ const downvoteVideo = async (req, res) => {
     }
 };
 
-<<<<<<< Updated upstream
-=======
 // --- THE UNBLOCKABLE ANDROID SCRAPER ---
 async function fetchYouTubeTranscript(videoId) {
     try {
@@ -203,7 +197,6 @@ async function fetchYouTubeTranscript(videoId) {
         return null;
     }
 }
->>>>>>> Stashed changes
 
 // @desc    Add a new video
 // @route   POST /api/videos
@@ -245,11 +238,8 @@ const addVideo = async (req, res) => {
         });
 
         const createdVideo = await video.save();
-<<<<<<< Updated upstream
-=======
 
         // 1. Send the success response IMMEDIATELY so the frontend is fast
->>>>>>> Stashed changes
         res.status(201).json(createdVideo);
 
         function getImgId(youtubeId) {
@@ -262,8 +252,6 @@ const addVideo = async (req, res) => {
     }
 };
 
-<<<<<<< Updated upstream
-=======
 // --- Helper Functions ---
 function getImgId(youtubeId) {
     let i = youtubeId.indexOf('?');
@@ -340,7 +328,6 @@ const processAIFeatures = async (videoDoc) => {
 };
 
 
->>>>>>> Stashed changes
 // @desc    Delete a video
 // @route   DELETE /api/videos/:id
 const deleteVideo = async (req, res) => {
