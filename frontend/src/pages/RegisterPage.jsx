@@ -1,17 +1,19 @@
-import React, { useState, useContext } from 'react';
-// import { AuthContext } from '../context/AuthContext'; // We need to add a register function here next
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { GraduationCap, Mail, Lock, User, Target, Layers, BookOpen, ArrowRight, Loader2 } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    university: 'CBSE', // Default
-    semester: '10' // Default
+    university: 'Nagpur', 
+    branch: 'ETC',
+    semester: '5' 
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
 
@@ -22,81 +24,145 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      // FIREBASE_REPLACE: 
-      // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // await setDoc(doc(db, "users", userCredential.user.uid), { ...extraData });
-      
-      // For now, hit our local backend
       await axios.post("http://localhost:3000/api/auth/register", formData);
-      
-      // On success, redirect to login
       navigate('/login');
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-slate-800 mb-6">Create Account</h2>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-            {error}
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center p-4 py-12" style={{ background: 'var(--bg-primary)' }}>
+      {/* Background Decorative Elements */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[100px]" style={{ background: 'var(--gradient-success)' }}></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[100px]" style={{ background: 'var(--gradient-accent)' }}></div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div>
-            <label className="block text-sm font-bold text-slate-700">Username</label>
-            <input type="text" name="username" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" required />
-          </div>
+      <div className="w-full max-w-md animate-fade-in-up">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 shadow-2xl transition-transform hover:scale-105" style={{ background: 'var(--gradient-success)' }}>
+            <GraduationCap size={32} className="text-white" />
+          </Link>
+          <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Create Account</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>Join EduStream and supercharge your studies</p>
+        </div>
 
-          <div>
-            <label className="block text-sm font-bold text-slate-700">Email</label>
-            <input type="email" name="email" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" required />
-          </div>
+        <div className="glass-card rounded-2xl p-8 shadow-2xl">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm font-medium flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></div>
+              {error}
+            </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-bold text-slate-700">Password</label>
-            <input type="password" name="password" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg" required />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                  <User size={16} />
+                </div>
+                <input 
+                  type="text" name="username" onChange={handleChange} 
+                  className="input-dark w-full pl-11" placeholder="student123" required 
+                />
+              </div>
+            </div>
 
-          {/* University Selection */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700">University</label>
-            <select name="university" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg">
-                <option value="Nagpur" selected>Nagpur</option>
-                <option value="Pune">Pune</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Email Address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                  <Mail size={16} />
+                </div>
+                <input 
+                  type="email" name="email" onChange={handleChange} 
+                  className="input-dark w-full pl-11" placeholder="student@example.com" required 
+                />
+              </div>
+            </div>
 
-          {/* Branch Selection */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700">Branch</label>
-            <select name="branchName" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg">
-                <option value="ETC" selected>ETC</option>
-                <option value="CS">CS</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                  <Lock size={16} />
+                </div>
+                <input 
+                  type="password" name="password" onChange={handleChange} 
+                  className="input-dark w-full pl-11" placeholder="••••••••" required 
+                />
+              </div>
+            </div>
 
-          {/* Class Selection */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700">Class</label>
-            <select name="semester" onChange={handleChange} className="w-full px-4 py-2 border rounded-lg">
-                <option value="5">5th</option>
-                <option value="6">6th</option>
-            </select>
-          </div>
+            <div className="pt-2 border-t border-slate-700/50 mt-4">
+              <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider w-fit mx-auto -mt-5 px-3 mb-4" style={{ background: 'var(--bg-card)' }}>Academic Details</h3>
+            </div>
 
-          <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg">
-            Register
-          </button>
-        </form>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>University</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                    <Target size={16} />
+                  </div>
+                  <select name="university" onChange={handleChange} className="input-dark w-full pl-11 appearance-none cursor-pointer" defaultValue="Nagpur">
+                    <option value="Nagpur">Nagpur University</option>
+                    <option value="Pune">Pune University</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Branch</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                    <Layers size={16} />
+                  </div>
+                  <select name="branch" onChange={handleChange} className="input-dark w-full pl-11 appearance-none cursor-pointer" defaultValue="ETC">
+                    <option value="ETC">ETC</option>
+                    <option value="CS">CS</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Semester</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                    <BookOpen size={16} />
+                  </div>
+                  <select name="semester" onChange={handleChange} className="input-dark w-full pl-11 appearance-none cursor-pointer" defaultValue="5">
+                    <option value="5">5th Sem</option>
+                    <option value="6">6th Sem</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
+              style={{ background: 'var(--gradient-success)' }}
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <>Complete Registration <ArrowRight size={18} /></>}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+            Already have an account?{' '}
+            <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+              Log in instead
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

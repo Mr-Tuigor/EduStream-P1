@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import UniversityCard from '../components/UniversityCard';
 import VideoCard from '../components/VideoCard';
+import { ChevronRight, BookOpen, Layers, Monitor, Zap } from 'lucide-react';
 
 const HomePage = () => {
   const [universities, setUniversities] = useState([]);
@@ -11,10 +12,10 @@ const HomePage = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedSemester, setSelectedSemester] = useState(null);
   const [selectedIsExamOriented, setSelectedIsExamOriented] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null); // Added this
-  const [selectedUnit, setSelectedUnit] = useState(null);  
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [selectedUnit, setSelectedUnit] = useState(null);
   const [videos, setVideos] = useState([]);
-  
+
   const { user } = useAuth();
 
   // 1. Fetch university on Load
@@ -23,6 +24,7 @@ const HomePage = () => {
       try {
         const { data } = await axios.get('http://localhost:3000/api/university');
         setUniversities(data);
+        console.log(universities);
       } catch (error) {
         console.error("Error fetching university:", error);
       }
@@ -30,7 +32,7 @@ const HomePage = () => {
     fetchUniversities();
   }, []);
 
-  // ⚡ Auto-select based on User Profile
+  // Auto-select based on User Profile
   useEffect(() => {
     if (user && universities.length > 0 && !selectedUniversity) {
       const userUni = universities.find(u => u.university === user.university);
@@ -40,31 +42,31 @@ const HomePage = () => {
     }
   }, [user, universities, selectedUniversity]);
 
-  // Reset helper when navigating back via breadcrumbs
+  // Reset helper
   const resetSelection = (level) => {
     if (level <= 1) setSelectedUniversity(null);
     if (level <= 2) setSelectedBranch(null);
     if (level <= 3) setSelectedSemester(null);
     if (level <= 4) setSelectedIsExamOriented(null);
     if (level <= 5) setSelectedSubject(null);
-    if (level <=6) {
-        setSelectedUnit(null);
-        setVideos([]);
+    if (level <= 6) {
+      setSelectedUnit(null);
+      setVideos([]);
     }
   };
 
-  // Trigger video fetch only when Unit is selected (or when Subject changes)
-  const handleUnitSelect = async (unit) => {
-    setSelectedUnit(unit);
+  // Fetch videos on unit select
+  const handleUnitSelect = async (unitNumber) => {
+    setSelectedUnit(unitNumber);
     try {
       const { data } = await axios.get(`http://localhost:3000/api/videos`, {
         params: {
           university: selectedUniversity.university,
           branch: selectedBranch.branchName,
           semester: selectedSemester.semester,
-          isExamOriented: selectedIsExamOriented, 
+          isExamOriented: selectedIsExamOriented === 'Yes',
           subject: selectedSubject,
-          unit: unit
+          unit: unitNumber
         }
       });
       setVideos(data);
@@ -74,31 +76,47 @@ const HomePage = () => {
   };
 
   const handleVideoUpdate = (updatedVideo) => {
-    setVideos(prevVideos => 
-      prevVideos.map(v => v._id === updatedVideo._id ? updatedVideo : v)
-    );
+    setVideos(prev => prev.map(v => v._id === updatedVideo._id ? updatedVideo : v));
+  };
+
+  // Get subjects from the new schema structure
+  const getSubjects = () => {
+    if (!selectedSemester) return [];
+    return selectedSemester.subjects?.map(s => s.subjectName || s) || [];
+  };
+
+  // Get units for the selected subject
+  const getUnitsForSubject = () => {
+    if (!selectedSemester || !selectedSubject) return [];
+    const subjObj = selectedSemester.subjects?.find(s => (s.subjectName || s) === selectedSubject);
+    if (subjObj && subjObj.units) return subjObj.units;
+    // Fallback
+    return [1, 2, 3, 4, 5].map(n => ({ unitNumber: `Unit ${n}`, unitName: '' }));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <Navbar />
-      <main className="max-w-6xl mx-auto p-8">
-        
-        {/* Navigation Breadcrumbs */}
-        <div className="mb-8 flex items-center gap-2 text-sm text-slate-500 font-medium overflow-x-auto whitespace-nowrap">
-          <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(1)}>Universities</span>
-          {selectedUniversity && <> <span>/</span> <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(2)}>{selectedUniversity.university}</span> </>}
-          {selectedBranch && <> <span>/</span> <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(3)}>{selectedBranch.branchName}</span> </>}
-          {selectedSemester && <> <span>/</span> <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(4)}>Sem {selectedSemester.semester}</span> </>}
-          {selectedIsExamOriented && <> <span>/</span> <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(5)}>{selectedIsExamOriented === "Yes" ? "Exam Oriented" : "Non-Exam Oriented"}</span> </>}
-          {selectedSubject && <> <span>/</span> <span className="cursor-pointer hover:text-blue-600" onClick={() => resetSelection(6)}>{selectedSubject}</span> </>}
+      <main className="max-w-7xl mx-auto px-6 md:px-12 py-12 mt-4 sm:mt-8">
+
+        {/* Breadcrumb Navigation */}
+        <div className="mb-8 flex items-center gap-1.5 text-sm font-medium overflow-x-auto whitespace-nowrap pb-2" style={{ color: 'var(--text-muted)' }}>
+          <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(1)}>University</span>
+          {selectedUniversity && <><ChevronRight size={14} /> <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(2)}>{selectedUniversity.university}</span></>}
+          {selectedBranch && <><ChevronRight size={14} /> <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(3)}>{selectedBranch.branchName}</span></>}
+          {selectedSemester && <><ChevronRight size={14} /> <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(4)}>Sem {selectedSemester.semester}</span></>}
+          {selectedIsExamOriented && <><ChevronRight size={14} /> <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(5)}>{selectedIsExamOriented === "Yes" ? "Exam Oriented" : "Conceptual"}</span></>}
+          {selectedSubject && <><ChevronRight size={14} /> <span className="cursor-pointer hover:text-indigo-400 transition-colors" onClick={() => resetSelection(6)}>{selectedSubject}</span></>}
         </div>
 
         {/* 1. University Selection */}
         {!selectedUniversity && (
-          <section>
-            <h2 className="text-3xl font-extrabold mb-8">Select Your University</h2>
-            <div className="grid cursor-pointer grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <section className="animate-fade-in-up">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl sm:text-4xl font-black mb-3 gradient-text">Select Your University</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Choose your university to get started</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {universities.map(uni => (
                 <UniversityCard key={uni._id} university={uni} onSelect={setSelectedUniversity} />
               ))}
@@ -108,16 +126,20 @@ const HomePage = () => {
 
         {/* 2. Branch Selection */}
         {selectedUniversity && !selectedBranch && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-extrabold mb-8">{selectedUniversity.university}: Select Branch</h2>
+          <section className="animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">{selectedUniversity.university}</h2>
+            <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>Select your branch</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {selectedUniversity.branches.map(br => (
-                <button 
-                  key={br.branchName} 
+                <button
+                  key={br.branchName}
                   onClick={() => setSelectedBranch(br)}
-                  className="p-6 cursor-pointer bg-white border border-slate-200 rounded-xl font-bold text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                  className="glass-card rounded-xl p-6 text-center cursor-pointer group"
                 >
-                  {br.branchName}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110" style={{ background: 'var(--gradient-accent)' }}>
+                    <Layers size={20} className="text-white" />
+                  </div>
+                  <span className="font-bold text-lg text-white group-hover:text-indigo-300 transition-colors">{br.branchName}</span>
                 </button>
               ))}
             </div>
@@ -126,91 +148,115 @@ const HomePage = () => {
 
         {/* 3. Semester Selection */}
         {selectedBranch && !selectedSemester && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-extrabold mb-8">Select Semester</h2>
+          <section className="animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">Select Semester</h2>
+            <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>{selectedBranch.branchName} — Choose your semester</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {selectedBranch.semesters.map(sem => (
-                <button 
-                  key={sem.semester} 
+                <button
+                  key={sem.semester}
                   onClick={() => setSelectedSemester(sem)}
-                  className="p-6 cursor-pointer bg-white border border-slate-200 rounded-xl font-bold text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                  className="glass-card rounded-xl p-6 text-center cursor-pointer group"
                 >
-                  Semester {sem.semester}
+                  <span className="text-3xl font-black gradient-text">{sem.semester}</span>
+                  <p className="text-sm mt-2 font-medium" style={{ color: 'var(--text-muted)' }}>Semester</p>
                 </button>
               ))}
             </div>
           </section>
         )}
 
-        {/* 4. Type Selection */}
-        {selectedSemester && !selectedIsExamOriented &&(
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h2 className="text-3xl font-extrabold mb-8">Select videos type</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {["Yes", "No"].map(ans => (
-                <button 
-                  key={ans} 
-                  onClick={() => setSelectedIsExamOriented(ans)}
-                  className="p-6 cursor-pointer bg-white border border-slate-200 rounded-xl font-bold text-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                >
-                  {ans === "Yes" ? "Exam Oriented" : "Non-Exam Oriented"}
-                </button>
-              ))}
+        {/* 4. Exam Oriented Selection */}
+        {selectedSemester && !selectedIsExamOriented && (
+          <section className="animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">Video Type</h2>
+            <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>Choose your learning preference</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
+              <button
+                onClick={() => setSelectedIsExamOriented("Yes")}
+                className="glass-card rounded-xl p-6 text-center cursor-pointer group"
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                  <Zap size={24} className="text-white" />
+                </div>
+                <span className="font-bold text-white">Exam Oriented</span>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Focused on exam preparation</p>
+              </button>
+              <button
+                onClick={() => setSelectedIsExamOriented("No")}
+                className="glass-card rounded-xl p-6 text-center cursor-pointer group"
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'var(--gradient-success)' }}>
+                  <BookOpen size={24} className="text-white" />
+                </div>
+                <span className="font-bold text-white">Conceptual</span>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Deep understanding focused</p>
+              </button>
             </div>
           </section>
         )}
 
-        {/* 5. Subject & Unit Selection */}
+        {/* 5. Subject & Unit Selection + Videos */}
         {selectedIsExamOriented && (
-          <section className="animate-in fade-in duration-500">
-            <h2 className="text-3xl font-extrabold mb-4">
-                {selectedSubject ? `Subject: ${selectedSubject}` : "Select Subject"}
+          <section className="animate-fade-in">
+            <h2 className="text-2xl sm:text-3xl font-black mb-2 text-white">
+              {selectedSubject ? selectedSubject : "Select Subject"}
             </h2>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
+              {!selectedSubject ? 'Choose a subject' : !selectedUnit ? 'Now select a unit' : `Showing videos for ${selectedUnit}`}
+            </p>
 
             {/* Subject Pills */}
-            <div className="flex gap-3 mb-8 overflow-x-auto pb-2">
-              {selectedSemester.subjects.map(subject => (
-                <button 
+            <div className="flex flex-wrap gap-2 mb-6">
+              {getSubjects().map(subject => (
+                <button
                   key={subject}
                   onClick={() => { setSelectedSubject(subject); setSelectedUnit(null); setVideos([]); }}
-                  className={`px-6 cursor-pointer py-2 rounded-full border font-bold transition-all whitespace-nowrap ${selectedSubject === subject ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border-slate-200 hover:bg-slate-100'}`}
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold border transition-all cursor-pointer
+                    ${selectedSubject === subject
+                      ? 'border-indigo-500 bg-indigo-500/15 text-indigo-300'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300'}`}
                 >
                   {subject}
                 </button>
               ))}
             </div>
 
-            {/* 6. Unit Selection (Visible only after subject is chosen) */}
+            {/* Unit Selection */}
             {selectedSubject && (
-              <div className="mb-10 animate-in zoom-in-95 duration-300">
-                <h3 className="text-lg font-bold mb-4 text-slate-600">Select Unit</h3>
-                <div className="flex gap-4">
-                  {[1, 2, 3, 4, 5].map(unit => (
-                    <button
-                      key={unit}
-                      onClick={() => handleUnitSelect(unit)}
-                      className={`w-34 h-15 rounded-xl cursor-pointer flex items-center justify-center font-bold text-xl transition-all border-2 
-                        ${selectedUnit === unit 
-                          ? 'bg-green-600 border-green-600 text-white shadow-lg' 
-                          : 'bg-white border-slate-200 hover:border-green-500 text-slate-600'}`}
-                    >
-                      Unit {unit}
-                    </button>
-                  ))}
+              <div className="mb-8 animate-fade-in">
+                <div className="flex flex-wrap gap-3">
+                  {getUnitsForSubject().map(u => {
+                    const unitNum = u.unitNumber || `Unit ${u}`;
+                    const unitLabel = u.unitName ? `${unitNum} — ${u.unitName}` : unitNum;
+                    return (
+                      <button
+                        key={unitNum}
+                        onClick={() => handleUnitSelect(unitNum)}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border
+                          ${selectedUnit === unitNum
+                            ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 shadow-lg shadow-emerald-500/10'
+                            : 'border-slate-700 text-slate-400 hover:border-emerald-500/50 hover:text-slate-300'}`}
+                      >
+                        {unitLabel}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
             {/* Video Results */}
             {videos.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
                 {videos.map(video => (
                   <VideoCard key={video._id} video={video} onUpdate={handleVideoUpdate} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium text-lg">
+              <div className="text-center py-16 glass-card rounded-2xl" style={{ borderStyle: 'dashed' }}>
+                <Monitor size={40} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+                <p className="font-medium" style={{ color: 'var(--text-secondary)' }}>
                   {!selectedSubject ? "Select a subject to begin" : !selectedUnit ? "Now select a unit to view videos" : "No videos found for this unit."}
                 </p>
               </div>

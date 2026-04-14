@@ -1,20 +1,30 @@
 const Video = require('../models/Video');
+<<<<<<< Updated upstream
 const mongoose = require('mongoose');
+=======
+const axios = require('axios');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// Initialize Gemini — use environment variable only (no hardcoded keys)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+
+>>>>>>> Stashed changes
 
 // @desc    Get videos based on filters
 // @route   GET /api/videos
 const getVideos = async (req, res) => {
     try {
         const { university, branch, semester, subject, isExamOriented, unit, search } = req.query;
-        
+
         // Build a query object based on what the user selected
         const query = {};
         if (university) query.university = university;
-        if(branch) query.branch = branch;
+        if (branch) query.branch = branch;
         if (semester) query.semester = semester;
         if (subject) query.subject = subject;
-        if(unit) query.unit = unit;
-        if(isExamOriented) query.isExamOriented = isExamOriented;
+        if (unit) query.unit = unit;
+        if (isExamOriented) query.isExamOriented = isExamOriented;
 
 
 
@@ -25,9 +35,11 @@ const getVideos = async (req, res) => {
             ];
         }
 
-        // Find videos and sort them by upvotes (highest first)
-        const videos = await Video.find(query).sort({ upvotes: -1 });
-        
+        // Find videos, exclude heavy fields, sort by computed voteScore (fastest)
+        const videos = await Video.find(query)
+            .select('-transcript -vectorEmbedding -questions')
+            .sort({ voteScore: -1 });
+
         res.json(videos);
     } catch (error) {
         res.status(500).json({ message: "Server Error: Could not fetch videos" });
@@ -39,68 +51,68 @@ const getVideos = async (req, res) => {
 // @route   GET /api/videos/:id
 // @access  Public
 const getVideoById = async (req, res) => {
-  try {
-    const video = await Video.findById(req.params.id);
+    try {
+        const video = await Video.findById(req.params.id);
 
-    if (!video) {
-      return res.status(404).json({ message: "Video not found" });
-    }
+        if (!video) {
+            return res.status(404).json({ message: "Video not found" });
+        }
 
-    res.status(200).json(video);
-  } catch (error) {
-    console.error("Error fetching video:", error);
-    // If ID format is invalid (CastError)
-    if (error.kind === 'ObjectId') {
-        return res.status(404).json({ message: "Video not found" });
+        res.status(200).json(video);
+    } catch (error) {
+        console.error("Error fetching video:", error);
+        // If ID format is invalid (CastError)
+        if (error.kind === 'ObjectId') {
+            return res.status(404).json({ message: "Video not found" });
+        }
+        res.status(500).json({ message: "Server Error" });
     }
-    res.status(500).json({ message: "Server Error" });
-  }
 };
 
 
 // @desc    Get related videos (Same Class & Subject, excluding current)
 // @route   GET /api/videos/related/:id
 const getRelatedVideos = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // 1. Find the current video to know its Subject/Class
-    const currentVideo = await Video.findById(id);
-    if (!currentVideo) {
-      return res.status(404).json({ message: "Video not found" });
+    try {
+        const { id } = req.params;
+
+        // 1. Find the current video to know its Subject/Class
+        const currentVideo = await Video.findById(id);
+        if (!currentVideo) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+
+        // 2. Find matches: Same Class, Same Subject, NOT same ID
+        const relatedVideos = await Video.find({
+            branch: currentVideo.branch,
+            semester: currentVideo.semester,
+            subject: currentVideo.subject,
+            _id: { $ne: id } // $ne means "Not Equal"
+        })
+            .select('-transcript -vectorEmbedding -questions')
+            .limit(5); // Fetch top 5 suggestions
+
+        res.status(200).json(relatedVideos);
+    } catch (error) {
+        console.error("Error fetching related videos:", error);
+        res.status(500).json({ message: "Server Error" });
     }
-
-    // 2. Find matches: Same Class, Same Subject, NOT same ID
-    const relatedVideos = await Video.find({
-      branch: currentVideo.branch,
-      semester: currentVideo.semester,
-      subject: currentVideo.subject,
-      _id: { $ne: id } // $ne means "Not Equal"
-    }).limit(5); // Fetch top 5 suggestions
-
-    res.status(200).json(relatedVideos);
-  } catch (error) {
-    console.error("Error fetching related videos:", error);
-    res.status(500).json({ message: "Server Error" });
-  }
 };
 
 // @desc    Upvote a video
 // @route   POST /api/videos/:id/upvote
 const upvoteVideo = async (req, res) => {
+
     try {
         const video = await Video.findById(req.params.id);
-        //  const userId = new mongoose.Types.ObjectId(req.body.userId);// Later this will come from the Auth middleware
         const userId = req.user._id;
 
         if (!video) return res.status(404).json({ message: "Video not found" });
-
         if (!video.upvotes) video.upvotes = [];
         if (!video.downvotes) video.downvotes = [];
 
         // 1. Check if already upvoted
         const alreadyUpvoted = video.upvotes.some(id => id.toString() === userId.toString());
-        
         if (alreadyUpvoted) {
             // Remove the upvote (Toggle off)
             video.upvotes = video.upvotes.filter(id => id.toString() !== userId.toString());
@@ -110,10 +122,12 @@ const upvoteVideo = async (req, res) => {
             // Ensure it's removed from downvotes if it was there
             video.downvotes = video.downvotes.filter(id => id.toString() !== userId.toString());
         }
-
+        // voteScore is auto-recalculated in the pre-save hook
         await video.save();
-        res.json(video);
+        res.status(200).json(video);
+        
     } catch (error) {
+        console.error("Error upvoting video:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -123,7 +137,6 @@ const upvoteVideo = async (req, res) => {
 const downvoteVideo = async (req, res) => {
     try {
         const video = await Video.findById(req.params.id);
-        //const userId = new mongoose.Types.ObjectId(req.body.userId);
         const userId = req.user._id;
 
         if (!video) return res.status(404).json({ message: "Video not found" });
@@ -137,6 +150,7 @@ const downvoteVideo = async (req, res) => {
             video.upvotes = video.upvotes.filter(id => id.toString() !== userId.toString());
         }
 
+        // voteScore is auto-recalculated in the pre-save hook
         await video.save();
         res.json(video);
     } catch (error) {
@@ -144,6 +158,52 @@ const downvoteVideo = async (req, res) => {
     }
 };
 
+<<<<<<< Updated upstream
+=======
+// --- THE UNBLOCKABLE ANDROID SCRAPER ---
+async function fetchYouTubeTranscript(videoId) {
+    try {
+        const response = await axios.post(
+            'https://www.youtube.com/youtubei/v1/player',
+            {
+                context: {
+                    client: {
+                        clientName: "ANDROID",
+                        clientVersion: "20.10.38"
+                    }
+                },
+                videoId: videoId
+            },
+            {
+                headers: {
+                    'User-Agent': 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)',
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const tracks = response.data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+
+        if (!tracks || tracks.length === 0) {
+            return null;
+        }
+
+        const track = tracks.find(t => t.languageCode.includes('en')) || tracks[0];
+        const { data: xml } = await axios.get(track.baseUrl);
+
+        return xml
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/\s+/g, ' ')
+            .trim();
+    } catch (error) {
+        console.error("Android Scraper Error:", error.message);
+        return null;
+    }
+}
+>>>>>>> Stashed changes
 
 // @desc    Add a new video
 // @route   POST /api/videos
@@ -185,6 +245,11 @@ const addVideo = async (req, res) => {
         });
 
         const createdVideo = await video.save();
+<<<<<<< Updated upstream
+=======
+
+        // 1. Send the success response IMMEDIATELY so the frontend is fast
+>>>>>>> Stashed changes
         res.status(201).json(createdVideo);
 
         function getImgId(youtubeId) {
@@ -197,6 +262,85 @@ const addVideo = async (req, res) => {
     }
 };
 
+<<<<<<< Updated upstream
+=======
+// --- Helper Functions ---
+function getImgId(youtubeId) {
+    let i = youtubeId.indexOf('?');
+    if (i === -1) {
+        return youtubeId;
+    }
+    return i !== -1 ? youtubeId.slice(0, i) : youtubeId;
+}
+
+
+// --- THE BACKGROUND AI PIPELINE ---
+const processAIFeatures = async (videoDoc) => {
+    try {
+        console.log(`\n--- [AI-Processing Started] ---`);
+        console.log(`Title: ${videoDoc.title}`);
+
+        if (videoDoc.youtubeId.length !== 11) {
+            console.log(`❌ [AI-Processing Aborted] Invalid YouTube ID.`);
+            return;
+        }
+
+        // Update status to processing
+        await Video.findByIdAndUpdate(videoDoc._id, { aiStatus: 'processing' });
+
+        // STEP 1: Fetch Transcript
+        console.log(`Downloading transcript...`);
+        const transcriptText = await fetchYouTubeTranscript(videoDoc.youtubeId);
+
+        if (!transcriptText) {
+            console.log(`❌ [AI-Processing Aborted] Video has no captions available.`);
+            await Video.findByIdAndUpdate(videoDoc._id, { aiStatus: 'failed' });
+            return;
+        }
+        console.log(`✅ Transcript downloaded! (${transcriptText.length} chars)`);
+
+        // STEP 2: Generate Vector Embedding
+        console.log(`Generating Vector Embeddings...`);
+        const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-2-preview" });
+        const textToEmbed = `Title: ${videoDoc.title}\nSubject: ${videoDoc.subject}\nTopic: ${videoDoc.topic}\nContent: ${transcriptText}`;
+        const embedResult = await embeddingModel.embedContent(textToEmbed);
+        const vectorArray = embedResult.embedding.values;
+        console.log(`✅ Embeddings generated!`);
+
+        // STEP 3: Generate Default Quiz
+        console.log(`Generating AI Quiz...`);
+        const quizModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const prompt = `
+            Based on the following transcript, generate 5 multiple-choice questions. 
+            Return ONLY a valid JSON array. Do not include markdown formatting like \`\`\`json.
+            Format: [{"question": "...", "options": ["A", "B", "C", "D"], "correctAnswer": "...", "explanation": "..."}]
+            
+            Transcript: ${transcriptText}
+        `;
+        const quizResult = await quizModel.generateContent(prompt);
+        let rawText = quizResult.response.text();
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const quizData = JSON.parse(rawText);
+        console.log(`✅ Quiz generated!`);
+
+        // STEP 4: Save to Database
+        videoDoc.transcript = transcriptText;
+        videoDoc.vectorEmbedding = vectorArray;
+        videoDoc.questions = quizData;
+        videoDoc.aiStatus = 'completed'; // Let the frontend know it's ready!
+
+        await videoDoc.save();
+        console.log(`\n🎉 [AI-Processing] ALL DONE for: ${videoDoc.title}\n`);
+
+    } catch (error) {
+        console.error(`\n❌ [AI-Processing Failed Safely]`);
+        console.error(`Error Message: ${error.message}`);
+        await Video.findByIdAndUpdate(videoDoc._id, { aiStatus: 'failed' });
+    }
+};
+
+
+>>>>>>> Stashed changes
 // @desc    Delete a video
 // @route   DELETE /api/videos/:id
 const deleteVideo = async (req, res) => {

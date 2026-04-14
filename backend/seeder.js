@@ -21,19 +21,101 @@ const seedData = async () => {
                             {
                                 semester: "5",
                                 subjects: [
-                                    "Sensor and Systems", 
-                                    "Embedded System", 
-                                    "DSP", 
-                                    "EMW"
+                                    {
+                                        subjectName: "Sensor and Systems",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "Embedded System",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "DSP",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "EMW",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    }
                                 ] 
                             },
                             {
                                 semester: "6",
                                 subjects: [
-                                    "CSE", 
-                                    "CCN", 
-                                    "WSN", 
-                                    "IOT"
+                                    {
+                                        subjectName: "CSE",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "CCN",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "WSN",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "IOT",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    },
+                                    {
+                                        subjectName: "Java Programming(OE)",
+                                        units: [
+                                            { unitNumber: "Unit 1", unitName: "" },
+                                            { unitNumber: "Unit 2", unitName: "" },
+                                            { unitNumber: "Unit 3", unitName: "" },
+                                            { unitNumber: "Unit 4", unitName: "" },
+                                            { unitNumber: "Unit 5", unitName: "" }
+                                        ]
+                                    }
                                 ] 
                             },
                         ]
