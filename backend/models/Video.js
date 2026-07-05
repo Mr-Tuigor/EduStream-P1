@@ -7,14 +7,12 @@ const videoSchema = new mongoose.Schema({
     description: { type: String },
     university: { type: String, required: true },    // e.g., "Nagpur"
     branch: { type: String },
-    semester: { type: String, required: true }, // e.g., "10"
+    semester: { type: Number, required: true }, // e.g., "10"
     subject: { type: String, required: true },  // e.g., "EMW, Embedded System"
     unit: { type: String },
-    isExamOriented: { type: String, default: "No", required: true},
+    isExamOriented: { type: Boolean, default: false, required: true},
     topic: { type: String },                    // e.g., "Refraction"
     
-<<<<<<< Updated upstream
-=======
     // AI Related Fields
     transcript: { type: String, default: "" },
     summary: { type: String, default: "" },
@@ -36,7 +34,6 @@ const videoSchema = new mongoose.Schema({
 
     vectorEmbedding: { type: [Number], default: [] },
 
->>>>>>> Stashed changes
     // Voting System
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

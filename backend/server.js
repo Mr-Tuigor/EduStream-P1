@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const universityRoutes = require('./routes/universityRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const authRoutes = require('./routes/authRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use('/api/university', universityRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

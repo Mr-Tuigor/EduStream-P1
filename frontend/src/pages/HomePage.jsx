@@ -24,7 +24,6 @@ const HomePage = () => {
       try {
         const { data } = await axios.get('http://localhost:3000/api/university');
         setUniversities(data);
-        console.log(universities);
       } catch (error) {
         console.error("Error fetching university:", error);
       }
@@ -57,6 +56,7 @@ const HomePage = () => {
 
   // Fetch videos on unit select
   const handleUnitSelect = async (unitNumber) => {
+    console.log(selectedBranch, selectedSemester);
     setSelectedUnit(unitNumber);
     try {
       const { data } = await axios.get(`http://localhost:3000/api/videos`, {
@@ -70,6 +70,7 @@ const HomePage = () => {
         }
       });
       setVideos(data);
+      console.log(data);
     } catch (error) {
       console.error("Error fetching videos:", error);
     }

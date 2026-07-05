@@ -3,7 +3,7 @@ const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Initialize Gemini — use environment variable only (no hardcoded keys)
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI("AIzaSyCZibCRgR7Rlf5gj4KEdeN94Xkifx4bbBY");
 
 
 
@@ -17,12 +17,13 @@ const getVideos = async (req, res) => {
         const query = {};
         if (university) query.university = university;
         if (branch) query.branch = branch;
-        if (semester) query.semester = semester;
+        if (semester) query.semester = parseInt(semester);
         if (subject) query.subject = subject;
         if (unit) query.unit = unit;
-        if (isExamOriented) query.isExamOriented = isExamOriented;
-
-
+        // Only add isExamOriented if it was actually provided in the query
+        if (isExamOriented !== undefined && isExamOriented !== '') {
+            query.isExamOriented = isExamOriented === 'true';
+        }
 
         if (search) {
             query.$or = [
@@ -121,7 +122,7 @@ const upvoteVideo = async (req, res) => {
         // voteScore is auto-recalculated in the pre-save hook
         await video.save();
         res.status(200).json(video);
-        
+
     } catch (error) {
         console.error("Error upvoting video:", error);
         res.status(500).json({ message: error.message });
@@ -204,8 +205,9 @@ const addVideo = async (req, res) => {
     try {
         const { title, youtubeId, university, branch, semester, subject, unit, topic } = req.body;
 
-        if(!title || !youtubeId || !university || !branch || !semester || !subject || !unit || !topic) {
-            return res.status(400).json({ message: "All fields are required",
+        if (!title || !youtubeId || !university || !branch || !semester || !subject || !unit || !topic) {
+            return res.status(400).json({
+                message: "All fields are required",
                 requierdFields: {
                     title,
                     youtubeId,
@@ -216,10 +218,10 @@ const addVideo = async (req, res) => {
                     unit,
                     topic
                 }
-             });
+            });
         }
 
-        
+
         const imgId = getImgId(youtubeId);
         console.log(imgId);
 
@@ -241,6 +243,9 @@ const addVideo = async (req, res) => {
 
         // 1. Send the success response IMMEDIATELY so the frontend is fast
         res.status(201).json(createdVideo);
+
+        // 2. Kick off AI pipeline in the background (non-blocking)
+        processAIFeatures(createdVideo);
 
         function getImgId(youtubeId) {
             let i = youtubeId.indexOf('?');
@@ -268,8 +273,9 @@ const processAIFeatures = async (videoDoc) => {
         console.log(`\n--- [AI-Processing Started] ---`);
         console.log(`Title: ${videoDoc.title}`);
 
-        if (videoDoc.youtubeId.length !== 11) {
-            console.log(`❌ [AI-Processing Aborted] Invalid YouTube ID.`);
+        const cleanId = getImgId(videoDoc.youtubeId);
+        if (!cleanId || cleanId.length !== 11) {
+            console.log(`❌ [AI-Processing Aborted] Invalid YouTube ID: "${videoDoc.youtubeId}"`);
             return;
         }
 
@@ -278,7 +284,7 @@ const processAIFeatures = async (videoDoc) => {
 
         // STEP 1: Fetch Transcript
         console.log(`Downloading transcript...`);
-        const transcriptText = await fetchYouTubeTranscript(videoDoc.youtubeId);
+        const transcriptText = await fetchYouTubeTranscript(cleanId);
 
         if (!transcriptText) {
             console.log(`❌ [AI-Processing Aborted] Video has no captions available.`);
